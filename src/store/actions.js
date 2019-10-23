@@ -7,7 +7,14 @@ import {
   RECEIVE_CATEGORYS,
   RECEIVE_SHOPS,
   RECEIVE_USER_INFO,
-  RESET_USER_INFO
+  RESET_USER_INFO,
+  RECEIVE_GOODS,
+  RECEIVE_RATINGS,
+  RECEIVE_INFO,
+  INCREMENT_FOOD_COUNT,
+  DECREMENT_FOOD_COUNT,
+  CLEAR_CART,
+  RECEIVE_SEARCH_SHOPS
 } from './mutation-types'
 
 import {
@@ -15,7 +22,11 @@ import {
   reqFoodCategorys,
   reqShops,
   reqUserInfo,
-  reqLogout
+  reqLogout,
+  reqShopGoods,
+  reqShopRatings,
+  reqShopInfo,
+  reqSearchShop
 }
 from '../api'
 
@@ -73,4 +84,59 @@ export default {
       commit(RESET_USER_INFO)
     }
   },
+
+  // 异步得到商家商品
+  async getShopGoods({commit},callBack){
+    const result=await reqShopGoods()
+    if(result.code===0){
+      const goods=result.data
+      commit(RECEIVE_GOODS,{goods})
+      //数据更新了，通知组件
+      callBack && callBack() //callBack可以为空
+    }
+  },
+  // 异步得到商家评价
+  async getShopRating({commit},callBack){
+    const result=await reqShopRatings()
+    if(result.code===0){
+      const ratings=result.data
+      commit(RECEIVE_RATINGS,{ratings})
+      callBack && callBack() //callBack可以为空
+    }
+  },
+  // 异步得到商家信息
+  async getShopInfo({commit}){
+    const result=await reqShopInfo()
+    if(result.code===0){
+      const info=result.data
+      commit(RECEIVE_INFO,{info})
+
+    }
+  },
+  // 同步更新food中的count值
+  updateFoodCount({commit}, {isAdd, food}) {
+    if (isAdd) {
+      commit(INCREMENT_FOOD_COUNT, {food})
+    } else {
+      commit(DECREMENT_FOOD_COUNT, {food})
+    }
+  },
+  //清空购物车
+  clearCart({commit}){
+    commit(CLEAR_CART)
+  },
+  //搜索
+  async searchShops({commit,state},{keyword}){
+    const geosh =state.latitude+","+state.longitude
+    // 发送异步ajax请求
+
+    const result=await reqSearchShop(geosh,keyword)
+    // 提交一个mutation
+
+    if(result.code === 0){
+      const shops =result.data
+      console.log(shops)
+      commit(RECEIVE_SEARCH_SHOPS,{shops})
+    }
+  }
 }
